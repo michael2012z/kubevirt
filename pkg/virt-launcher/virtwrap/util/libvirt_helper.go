@@ -7,9 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"os/user"
 	"reflect"
-	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -413,34 +411,38 @@ func NewDomainFromName(name string, vmiUID types.UID) *api.Domain {
 }
 
 func SetupLibvirt() (err error) {
-	// TODO: setting permissions and owners is not part of device plugins.
-	// Configure these manually right now on "/dev/kvm"
-	stats, err := os.Stat("/dev/kvm")
-	if err == nil {
-		s, ok := stats.Sys().(*syscall.Stat_t)
-		if !ok {
-			return fmt.Errorf("can't convert file stats to unix/linux stats")
-		}
-		g, err := user.LookupGroup("qemu")
-		if err != nil {
+
+	// Michael: for xen
+	/*
+		// TODO: setting permissions and owners is not part of device plugins.
+		// Configure these manually right now on "/dev/kvm"
+		stats, err := os.Stat("/dev/kvm")
+		if err == nil {
+			s, ok := stats.Sys().(*syscall.Stat_t)
+			if !ok {
+				return fmt.Errorf("can't convert file stats to unix/linux stats")
+			}
+			g, err := user.LookupGroup("qemu")
+			if err != nil {
+				return err
+			}
+			gid, err := strconv.Atoi(g.Gid)
+			if err != nil {
+				return err
+			}
+			err = os.Chown("/dev/kvm", int(s.Uid), gid)
+			if err != nil {
+				return err
+			}
+			// #nosec G302: Poor file permissions used with chmod. Safe to use the common permission setting for the specific system file
+			err = os.Chmod("/dev/kvm", 0660)
+			if err != nil {
+				return err
+			}
+		} else if !os.IsNotExist(err) {
 			return err
 		}
-		gid, err := strconv.Atoi(g.Gid)
-		if err != nil {
-			return err
-		}
-		err = os.Chown("/dev/kvm", int(s.Uid), gid)
-		if err != nil {
-			return err
-		}
-		// #nosec G302: Poor file permissions used with chmod. Safe to use the common permission setting for the specific system file
-		err = os.Chmod("/dev/kvm", 0660)
-		if err != nil {
-			return err
-		}
-	} else if !os.IsNotExist(err) {
-		return err
-	}
+	*/
 
 	qemuConf, err := os.OpenFile("/etc/libvirt/qemu.conf", os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
