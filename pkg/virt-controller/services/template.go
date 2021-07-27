@@ -1001,9 +1001,12 @@ func (t *templateService) renderLaunchManifest(vmi *v1.VirtualMachineInstance, t
 
 	if useEmulation {
 		command = append(command, "--use-emulation")
-	} else {
+	}
+	// Michael:
+	/* else {
 		resources.Limits[KvmDevice] = resource.MustParse("1")
 	}
+	*/
 
 	// Add ports from interfaces to the pod manifest
 	ports := getPortsFromVMI(vmi)
@@ -1618,20 +1621,24 @@ func getRequiredCapabilities(vmi *v1.VirtualMachineInstance, config *virtconfig.
 
 func getRequiredResources(vmi *v1.VirtualMachineInstance, useEmulation bool) k8sv1.ResourceList {
 	res := k8sv1.ResourceList{}
-	if (len(vmi.Spec.Domain.Devices.Interfaces) > 0) ||
-		(vmi.Spec.Domain.Devices.AutoattachPodInterface == nil) ||
-		(*vmi.Spec.Domain.Devices.AutoattachPodInterface == true) {
-		res[TunDevice] = resource.MustParse("1")
-	}
-	for _, iface := range vmi.Spec.Domain.Devices.Interfaces {
-		if !useEmulation && (iface.Model == "" || iface.Model == "virtio") {
-			// Note that about network interface, useEmulation does not make
-			// any difference on eventual Domain xml, but uniformly making
-			// /dev/vhost-net unavailable and libvirt implicitly fallback
-			// to use QEMU userland NIC emulation.
-			res[VhostNetDevice] = resource.MustParse("1")
+	// Michael: resource
+	/*
+		if (len(vmi.Spec.Domain.Devices.Interfaces) > 0) ||
+			(vmi.Spec.Domain.Devices.AutoattachPodInterface == nil) ||
+			(*vmi.Spec.Domain.Devices.AutoattachPodInterface == true) {
+			res[TunDevice] = resource.MustParse("1")
 		}
-	}
+		for _, iface := range vmi.Spec.Domain.Devices.Interfaces {
+			if !useEmulation && (iface.Model == "" || iface.Model == "virtio") {
+				// Note that about network interface, useEmulation does not make
+				// any difference on eventual Domain xml, but uniformly making
+				// /dev/vhost-net unavailable and libvirt implicitly fallback
+				// to use QEMU userland NIC emulation.
+				res[VhostNetDevice] = resource.MustParse("1")
+			}
+		}
+	*/
+
 	return res
 }
 
