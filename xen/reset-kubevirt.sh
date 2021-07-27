@@ -39,22 +39,21 @@ echo
 echo "########## Deploying kubevirt .........."
 cd ${KUBEVIRT_DIR}
 make manifests || exit 4
-kubectl create -f ${KUBEVIRT_DIR}/_out/manifests/release/kubevirt-operator.yaml || exit 4
-kubectl create -f ${KUBEVIRT_DIR}/_out/manifests/release/kubevirt-cr.yaml || exit 4
+kubectl create -f ${KUBEVIRT_DIR}/_out/manifests/release/kubevirt-operator.yaml -v 5 || exit 4
+kubectl create -f ${KUBEVIRT_DIR}/_out/manifests/release/kubevirt-cr.yaml -v 5 || exit 4
 
 echo
 echo
 echo "########## Waiting for kubevirt .........."
 sleep 20s
+kubectl wait --for=condition=available --timeout=120s kubevirt.kubevirt.io/kubevirt -n kubevirt || exit 4
+echo
+echo "########## Kubevirt is deployed successfully"
 echo
 echo "########## To check status: kubectl get all -n kubevirt"
 echo
 kubectl get all -n kubevirt
 
-kubectl wait --for=condition=available --timeout=120s kubevirt.kubevirt.io/kubevirt -n kubevirt || exit 4
-echo
-echo "########## Kubevirt is deployed successfully"
-echo
 
 kubectl apply -f https://kubevirt.io/labs/manifests/vm.yaml || exit 5
 virtctl start testvm || 5
